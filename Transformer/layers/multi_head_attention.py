@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from layers.scaled_dot_product_attention import ScaleDotProductAttention
+from transformer.layers.scaled_dot_product_attention import ScaleDotProductAttention
 
 class MultiHeadAttention(nn.Module):
     def __init__(self, d_model, n_heads):
@@ -55,8 +55,9 @@ class MultiHeadAttention(nn.Module):
         V = self.split_heads(self.W_v(V))
 
         # Perform scaled dot-product attention
-        attn_output = self.scaled_dot_product_attention(Q, K, V, mask)
+        attn_output, attn_weights = self.scaled_dot_product_attention(Q, K, V, mask)
 
         # Combine heads and apply output transformation
         output = self.W_o(self.combine_heads(attn_output))
-        return output
+        return output, attn_weights
+

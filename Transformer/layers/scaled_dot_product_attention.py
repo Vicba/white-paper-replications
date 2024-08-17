@@ -25,4 +25,4 @@ class ScaleDotProductAttention(nn.Module):
 
         # Multiply by values to obtain the final output
         output = torch.matmul(attn_probs, V)
-        return output
+        return output, attn_probs

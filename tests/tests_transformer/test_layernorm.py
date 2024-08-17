@@ -1,9 +1,20 @@
 import torch
 import torch.nn as nn
 import pytest
-from Transformer.layers.layernorm import LayerNorm
+import os
+import sys
 
-def test_layernorm(batch_size, seq_len, d_model):
+# Add the path to the transformer package
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+from transformer.layers.layernorm import LayerNorm
+
+@pytest.fixture(params=[(1, 100, 512)])  # Example parameters
+def test_params(request):
+    return request.param
+
+def test_layernorm(test_params):
+    batch_size, seq_len, d_model = test_params
+
     # Set a seed for reproducibility
     torch.manual_seed(42)
 
@@ -26,6 +37,7 @@ def test_layernorm(batch_size, seq_len, d_model):
     # Assert that the outputs are close
     assert torch.allclose(custom_output, pytorch_output, atol=1e-6), \
         f"Custom LayerNorm output differs from built-in LayerNorm output!"
-
+    
 if __name__ == "__main__":
     pytest.main()
+

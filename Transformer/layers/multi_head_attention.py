@@ -15,7 +15,7 @@ class MultiHeadAttention(nn.Module):
 
         self.scaled_dot_product_attention = ScaleDotProductAttention()
 
-        # Linear layers for transforming inputs
+        # Linear layers for transforming inputs into query (Q), key (K), and value (V) vectors
         self.W_q = nn.Linear(d_model, d_model) # Query transformation
         self.W_k = nn.Linear(d_model, d_model) # Key transformation
         self.W_v = nn.Linear(d_model, d_model) # Value transformation
@@ -23,12 +23,14 @@ class MultiHeadAttention(nn.Module):
 
     def split_heads(self, x):
         """
-        split tensor by number of head
+        Split the input tensor into multiple heads for parallel attention computation.
 
-        :param tensor: [batch_size, seq_length, d_model]
-        :return: [batch_size, n_head, seq_length, d_k]
+        :param x: Input tensor of shape [batch_size, seq_length, d_model]
+        :return: Tensor of shape [batch_size, n_heads, seq_length, d_k]
         """
-        # Reshape the input to have n_heads for multi-head attention
+        # Reshape the tensor to separate the attention heads and adjust dimensions accordingly
+        # New shape: [batch_size, seq_length, n_heads, d_k]
+        # Then, transpose to bring n_heads to the second dimension: [batch_size, n_heads, seq_length, d_k]
         # Original shape: torch.Size([1, 100, 512])
         # Reshaped shape: torch.Size([1, 100, 8, 64])
         batch_size, seq_length, d_model = x.size()
@@ -36,19 +38,29 @@ class MultiHeadAttention(nn.Module):
 
     def combine_heads(self, x):
         """
-        combine multiple heads
+        Combine the multiple attention heads back into a single tensor.
 
-        :param tensor: [batch_size, n_head, seq_length, d_k]
-        :return: [batch_size, length, d_model]
+        :param x: Tensor of shape [batch_size, n_heads, seq_length, d_k]
+        :return: Tensor of shape [batch_size, seq_length, d_model]
         """
-        # Combine the multiple heads back to original shape
         batch_size, n_heads, seq_length, d_k = x.size()
-        # contiguous() ensures the tensor's memory layout is suitable for reshaping, 
-        # and view(batch_size, seq_length, d_model) flattens the n_heads and d_k dimensions back 
-        # into the original d_model dimension, resulting in a tensor of shape (batch_size, seq_length, d_model).
+        # Transpose to bring the seq_length back to its original position
+        # Contiguous ensures the tensor's memory layout is suitable for reshaping
+        # Then, flatten the n_heads and d_k dimensions back to the original d_model dimension
+        # Final shape: [batch_size, seq_length, d_model]
         return x.transpose(1, 2).contiguous().view(batch_size, seq_length, self.d_model)
 
     def forward(self, Q, K, V, mask=None):
+        """
+        Forward pass for the multi-head attention mechanism.
+
+        :param Q: Query tensor of shape [batch_size, seq_length, d_model]
+        :param K: Key tensor of shape [batch_size, seq_length, d_model]
+        :param V: Value tensor of shape [batch_size, seq_length, d_model]
+        :param mask: Optional mask to prevent attention to certain positions
+        :return: Tuple (output, attn_weights) where output is the attention result 
+                 and attn_weights are the attention weights
+        """
         # Apply linear transformations and split heads
         Q = self.split_heads(self.W_q(Q)) # results in: (batch_size, n_heads, seq_length, d_k)
         K = self.split_heads(self.W_k(K))
@@ -57,7 +69,7 @@ class MultiHeadAttention(nn.Module):
         # Perform scaled dot-product attention
         attn_output, attn_weights = self.scaled_dot_product_attention(Q, K, V, mask)
 
-        # Combine heads and apply output transformation
+        # Combine heads and apply final linear output transformation
         output = self.W_o(self.combine_heads(attn_output))
         return output, attn_weights
 

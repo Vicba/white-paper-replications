@@ -2,9 +2,13 @@
 
 Welcome to the **White Paper Replications** repository! This project is dedicated to replicating state-of-the-art AI research from influential white papers, primarily using PyTorch and Python.
 
+Planning on adding these in the future
+- Visual transformer (ViT)
+- Mixture of experts (MoE)
+
 ## Overview
 
-In this repository, you'll find implementations of various AI models and algorithms as described in prominent research papers. The goal is to better understanding them by coding and try to make them as intuitive as possible.
+In this repository, you'll find implementations of various AI models and algorithms as described in prominent research papers. The goal is to better understand them by coding and trying to make them as intuitive as possible.
 
 ## Table of Contents
 
@@ -37,7 +41,7 @@ Here's a list of the white papers and their corresponding implementations availa
 Each implementation is located in its own directory, which includes:
 
 - **`README.md`**: Detailed instructions on how to use the code for that specific paper.
-- **`main.py`**: The main script to run the implementation.
+<!-- - **`main.py`**: The main script to run the implementation. -->
 - **`requirements.txt`**: Python dependencies required for that implementation.
 <!-- - **`data/`**: Dataset and other necessary files (if applicable). -->
 

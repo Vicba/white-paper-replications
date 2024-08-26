@@ -27,7 +27,7 @@ python train_predict.py
   - `encoder_layer.py`: Implements the Transformer encoder layer, which includes self-attention and feed-forward networks with residual connections and layer normalization.
   - `layernorm.py`: Implements Layer Normalization, which normalizes the inputs across the features, helping to stabilize and accelerate training.
   - `mlp.py`: Implements the Multi-Layer Perceptron, a feed-forward network used after the attention mechanism in each encoder layer.
-  - `multihead_attention.py`: Implements the Multi-Head Attention mechanism, allowing the model to jointly attend to information from different representation subspaces.
+  - `multihead_attention.py`: Implements the Multi-Head Attention mechanism, to pay attention to different parts of the input sequence simultaneously.
   - `patch_embedding.py`: Implements the Patch Embedding layer, which splits the input image into fixed-size patches and linearly embeds each patch.
 - `test.py`: Contains a simple test script to verify the ViT model's output shape.
 - `train_predict.py`: Implements training and prediction functions for the ViT model using the CIFAR-10 dataset.

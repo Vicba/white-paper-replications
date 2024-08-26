@@ -2,9 +2,12 @@
 
 Welcome to the **White Paper Replications** repository! This project is dedicated to replicating state-of-the-art AI research from influential white papers, primarily using PyTorch and Python.
 
+`Disclaimer:` The code is written by me, so it's not perfect. I'm still learning and trying to understand the code. It's a combination of parts I found in different resources.
+
 Planning on adding these in the future
-- Visual transformer (ViT)
 - Mixture of experts (MoE)
+- RoPE
+- FlashAttention
 
 ## Overview
 
@@ -35,8 +38,7 @@ To get started with the code in this repository, follow these steps:
 Here's a list of the white papers and their corresponding implementations available in this repository:
 
 - **["Attention is all you need" paper](https://arxiv.org/abs/1706.03762)**: Introduces the Transformer model, which uses self-attention to focus on important words in a sentence, making it faster and better at understanding long sentences compared to older models.
-<!-- - **[Paper Title 2](link-to-paper)**: Brief description of the implementation.
-- **[Paper Title 3](link-to-paper)**: Brief description of the implementation. -->
+- **["An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale"](https://arxiv.org/abs/2010.11929)**: Visual transformer (ViT) is a type of neural network that uses self-attention to process images for classification tasks.
 
 Each implementation is located in its own directory, which includes:
 
@@ -66,7 +68,7 @@ Contributions are welcome! If you'd like to add new replicas or improve existing
 5. Push to the branch (`git push origin feature-branch`).
 6. Open a pull request.
 
-Please ensure your contributions adhere to the project's coding standards and include tests if applicable.
+Please ensure your contributions adhere to the project's coding standards and include a test if applicable.
 
 ## License
 

@@ -8,6 +8,8 @@ Used the following resources to better understand this:
 
 The model I coded is a combination of different parts i found in these resources so i understood the code well.
 
+![transformer](https://cdn.analyticsvidhya.com/wp-content/uploads/2024/04/image12-removebg-preview-06-scaled.jpg)
+
 ## Features
 
 - **Multi-Head Self-Attention**: Implements the multi-head self-attention mechanism that allows the model to focus on different parts of the input sequence simultaneously.

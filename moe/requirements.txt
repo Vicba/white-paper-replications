@@ -1,0 +1,4 @@
+torch==2.2.2
+torchtext==0.17.2
+tqdm==4.66.1
+torchdata==0.8.0

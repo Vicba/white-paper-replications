@@ -5,7 +5,6 @@ Welcome to the **White Paper Replications** repository! This project is dedicate
 `Disclaimer:` The code is written by me, so it's not perfect. I'm still learning and trying to understand the code. It's a combination of parts I found in different resources.
 
 Planning on adding these in the future
-- Mixture of experts (MoE)
 - RoPE
 - FlashAttention
 

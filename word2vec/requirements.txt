@@ -1,0 +1,6 @@
+torch==2.2.2
+stop_words==2018.7.23
+spacy==3.7.6
+nltk==3.9.1
+torchtext==0.17.2
+numpy<2

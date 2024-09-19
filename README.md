@@ -39,6 +39,7 @@ Here's a list of the white papers and their corresponding implementations availa
 - **["Attention is All You Need" paper](https://arxiv.org/abs/1706.03762)**: Introduces the Transformer model, which uses self-attention to focus on important words in a sentence, making it faster and better at understanding long sentences compared to older models.
 - **["An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale"](https://arxiv.org/abs/2010.11929)**: Presents the Visual Transformer (ViT), a neural network that applies self-attention to image classification tasks.
 - **Mixture of Experts (various papers)**: Architecture that uses multiple specialized models (experts) and a gating mechanism to improve performance and adaptability by activating only the most relevant experts for a given task.
+- **["(Word2Vec) Efficient Estimation of Word Representations in Vector Space"](https://arxiv.org/pdf/1301.3781)**: Technique that transforms words into high-dimensional vectors, capturing their meaning and relationships based on the context in which they appear.
 
 Each one contains:
 - **`README.md`**: Detailed instructions on how to use the code for that specific paper.

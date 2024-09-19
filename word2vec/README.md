@@ -17,6 +17,15 @@ resources:
 - [Mastering NLP with PyTorch: Word2Vec](https://medium.com/@patrykmwieczorek/mastering-nlp-with-pytorch-word2vec-60a54030c720)
 - [motivation to code this, is from CS224](https://web.stanford.edu/class/cs224n/)
 
+## Usage
+1. Before running the trainer.py script download the dataset. Create a /data folder in this
+word2vec folder, download the dataset [here](https://developer.ibm.com/exchanges/data/all/wikitext-103/) and add the files to your /data folder.
+
+2. run the trainer.py file
+```bash
+python trainer.py
+```
+
 ## Features
 
 - **Skip-gram Model**: Trains on the context words to predict the target word.

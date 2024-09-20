@@ -5,32 +5,11 @@ Welcome to the **White Paper Replications** repository! This project is dedicate
 `Disclaimer:` The code is written by me, so it's not perfect. It's a combination of my own insights and parts I found in different resources.
 
 Planning on adding these in the future
-- RoPE
-- FlashAttention
+BERT, RoPE, FlashAttention, ClIP, Whisper, UNET, DDDM, DDIM, BLOOM
 
 ## Overview
 
 In this repository, you'll find implementations of various AI models and algorithms as described in prominent research papers. The goal is to better understand them by coding and trying to make them as intuitive as possible.
-
-## Table of Contents
-
-- [Getting Started](#getting-started)
-- [Available Replicas](#available-replicas)
-- [Requirements](#requirements)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
-
-## Getting Started
-
-To get started with the code in this repository, follow these steps:
-
-1. **Clone the Repository**
-
-   ```bash
-   git clone https://github.com/Vicba/white-paper-replications.git
-   cd white-paper-replications
-   ```
 
 ## Available Replicas
 
@@ -48,6 +27,25 @@ Each one contains:
 - **`requirements.txt`**: Python dependencies required for that implementation.
 <!-- - **`data/`**: Dataset and other necessary files (if applicable). -->
 
+## Table of Contents
+
+- [Getting Started](#getting-started)
+- [Requirements](#requirements)
+- [Usage](#usage)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Getting Started
+
+To get started with the code in this repository, follow these steps:
+
+1. **Clone the Repository**
+
+   ```bash
+   git clone https://github.com/Vicba/white-paper-replications.git
+   cd white-paper-replications
+   ```
+   
 ## Requirements
 
 To run the code, you'll need:
@@ -65,7 +63,7 @@ Contributions are welcome! If you'd like to add new replicas or improve existing
 1. Fork the repository.
 2. Create a new branch (`git checkout -b feature-branch`).
 3. Make your changes.
-4. Commit your changes (`git commit -am 'Add new replica'`).
+4. Commit your changes (`git commit -am 'Add <new replica>'`).
 5. Push to the branch (`git push origin feature-branch`).
 6. Open a pull request.
 

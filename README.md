@@ -2,7 +2,7 @@
 
 Welcome to the **White Paper Replications** repository! This project is dedicated to replicating state-of-the-art AI research from influential white papers, primarily using PyTorch and Python.
 
-`Disclaimer:` The code is written by me, so it's not perfect. I'm still learning and trying to understand the code. It's a combination of parts I found in different resources.
+`Disclaimer:` The code is written by me, so it's not perfect. It's a combination of my own insights and parts I found in different resources.
 
 Planning on adding these in the future
 - RoPE

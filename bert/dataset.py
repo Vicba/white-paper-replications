@@ -1,62 +1,86 @@
 import torch
 import random
-import numpy as np
 from torch.utils.data import Dataset
-from vocab import Vocabulary
+from transformers import BertTokenizer
 
-class RandomTextDataset(Dataset):
-    def __init__(self, vocab, num_samples, max_seq_len=512):
-        self.vocab = vocab
-        self.num_samples = num_samples
+class BERTPretrainingDataset(Dataset):
+    def __init__(self, file_path, max_seq_len=512, tokenizer=None):
+        self.tokenizer = tokenizer if tokenizer else BertTokenizer.from_pretrained('bert-base-uncased')
         self.max_seq_len = max_seq_len
-
-        # Generate random text samples
-        self.samples = self.generate_random_samples(num_samples)
-
-    def generate_random_samples(self, num_samples):
-        samples = []
-        for _ in range(num_samples):
-            # Randomly generate sentence length
-            seq_length = random.randint(5, self.max_seq_len)
-            # Create a random sequence of token IDs
-            input_ids = np.random.randint(0, len(self.vocab), size=seq_length).tolist()
-
-            # Generate segment IDs
-            segment_ids = [0] * seq_length
-            
-            # Create attention mask
-            attention_mask = [1] * seq_length
-            
-            # Create MLM labels
-            mlm_labels = input_ids.copy()
-            num_to_mask = int(0.15 * seq_length)
-            mask_indices = random.sample(range(seq_length), num_to_mask)
-            for idx in mask_indices:
-                mlm_labels[idx] = self.vocab.token_to_id['[UNK]']  # Using [UNK] for masked tokens
-
-            # Create NSP labels
-            nsp_labels = random.randint(0, 1)
-
-            samples.append((input_ids, segment_ids, attention_mask, mlm_labels, nsp_labels))
-
-        return samples
+        
+        # Load text data from the specified file
+        with open(file_path, 'r', encoding='utf-8') as f:
+            self.texts = f.readlines()
+        self.texts = [text.strip() for text in self.texts if text.strip()]  # Remove empty lines
 
     def __len__(self):
-        return self.num_samples
+        return len(self.texts)
 
     def __getitem__(self, idx):
-        input_ids, segment_ids, attention_mask, mlm_labels, nsp_labels = self.samples[idx]
+        text_a = self.texts[idx]
         
-        # Pad sequences to max_seq_len
-        input_ids += [self.vocab.token_to_id['[PAD]']] * (self.max_seq_len - len(input_ids))
-        segment_ids += [0] * (self.max_seq_len - len(segment_ids))
-        attention_mask += [0] * (self.max_seq_len - len(attention_mask))
-        mlm_labels += [-100] * (self.max_seq_len - len(mlm_labels))  # -100 will be ignored in loss
+        # Randomly choose to create a next sentence pair or not
+        if random.random() < 0.5:
+            # Choose a random next sentence from the same corpus
+            text_b = random.choice(self.texts)
+            is_next = 1  # Positive pair
+        else:
+            # Choose a random sentence from a different part of the corpus
+            text_b = random.choice(self.texts)
+            while text_b == text_a:
+                text_b = random.choice(self.texts)
+            is_next = 0  # Negative pair
 
-        return (
-            torch.tensor(input_ids, dtype=torch.long),
-            torch.tensor(segment_ids, dtype=torch.long),
-            torch.tensor(attention_mask, dtype=torch.long),
-            torch.tensor(mlm_labels, dtype=torch.long),
-            torch.tensor(nsp_labels, dtype=torch.long)
+        # Encode the pair
+        encoded_pair = self.tokenizer.encode_plus(
+            text_a,
+            text_b,
+            add_special_tokens=True,
+            max_length=self.max_seq_len,
+            padding='max_length',
+            truncation=True,
+            return_tensors='pt'
         )
+
+        # Prepare input tensors
+        input_ids = encoded_pair['input_ids'].squeeze(0)
+        token_type_ids = encoded_pair['token_type_ids'].squeeze(0)  # Segment IDs
+        attention_mask = encoded_pair['attention_mask'].squeeze(0)  # Attention Mask
+
+        # Add a new dimension for compatibility
+        attention_mask = attention_mask.unsqueeze(0).unsqueeze(0)  # Shape: (1, 1, seq_length)
+
+        # Create labels for MLM
+        mlm_labels = input_ids.clone()
+        # Randomly mask some of the tokens
+        rand = torch.rand(input_ids.shape)
+        mask_arr = (rand < 0.15) * (input_ids != 0)  # 15% tokens will be masked
+        for i in range(input_ids.shape[0]):
+            if mask_arr[i]:
+                # 80% of the time, replace with [MASK]
+                if random.random() < 0.8:
+                    mlm_labels[i] = self.tokenizer.mask_token_id
+                # 10% of the time, keep original
+                elif random.random() < 0.5:
+                    mlm_labels[i] = input_ids[i]
+                # 10% of the time, replace with random token
+                else:
+                    mlm_labels[i] = random.randint(1, self.tokenizer.vocab_size - 1)
+
+        return input_ids, token_type_ids, attention_mask, mlm_labels, is_next
+
+# Example usage:
+if __name__ == "__main__":
+    file_path = 'text.txt'
+    dataset = BERTPretrainingDataset(file_path)
+
+    input_ids, token_type_ids, attention_mask, mlm_labels, is_next = dataset[0]
+    decoded_text = dataset.tokenizer.decode(input_ids, skip_special_tokens=True)
+
+    print("Input IDs:", input_ids)
+    print("Token Type IDs:", token_type_ids)
+    print("Attention Mask:", attention_mask)
+    print("MLM Labels:", mlm_labels)
+    print("Is Next:", is_next)
+    print("Decoded Text:", decoded_text)  # This will show the decoded text
+    print(attention_mask.shape)  # Verify the shape

@@ -7,6 +7,7 @@ class BERTEmbedding(nn.Module):
     def __init__(self, vocab_size, d_model, max_seq_len, dropout=0.1):
         super(BERTEmbedding, self).__init__()
         
+        self.vocab_size = vocab_size
         self.token_embeddings = TokenEmbedding(vocab_size, d_model)
         self.pos_embeddings = PositionEmbedding(max_seq_len, d_model)
         self.segment_embeddings = SegmentEmbedding(d_model)

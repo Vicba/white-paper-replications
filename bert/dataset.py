@@ -1,86 +1,125 @@
-import torch
 import random
-from torch.utils.data import Dataset
+import torch
+import torch.nn as nn
+from torch.utils.data import Dataset, DataLoader
+import itertools
 from transformers import BertTokenizer
 
-class BERTPretrainingDataset(Dataset):
-    def __init__(self, file_path, max_seq_len=512, tokenizer=None):
-        self.tokenizer = tokenizer if tokenizer else BertTokenizer.from_pretrained('bert-base-uncased')
-        self.max_seq_len = max_seq_len
-        
-        # Load text data from the specified file
-        with open(file_path, 'r', encoding='utf-8') as f:
-            self.texts = f.readlines()
-        self.texts = [text.strip() for text in self.texts if text.strip()]  # Remove empty lines
+class BERTDataset(Dataset):
+    def __init__(self, data_pair, tokenizer, seq_len=64):
+
+        self.tokenizer = tokenizer
+        self.seq_len = seq_len
+        self.corpus_lines = len(data_pair)
+        self.lines = data_pair
 
     def __len__(self):
-        return len(self.texts)
+        return self.corpus_lines
 
-    def __getitem__(self, idx):
-        text_a = self.texts[idx]
-        
-        # Randomly choose to create a next sentence pair or not
-        if random.random() < 0.5:
-            # Choose a random next sentence from the same corpus
-            text_b = random.choice(self.texts)
-            is_next = 1  # Positive pair
-        else:
-            # Choose a random sentence from a different part of the corpus
-            text_b = random.choice(self.texts)
-            while text_b == text_a:
-                text_b = random.choice(self.texts)
-            is_next = 0  # Negative pair
+    def __getitem__(self, item):
 
-        # Encode the pair
-        encoded_pair = self.tokenizer.encode_plus(
-            text_a,
-            text_b,
-            add_special_tokens=True,
-            max_length=self.max_seq_len,
-            padding='max_length',
-            truncation=True,
-            return_tensors='pt'
-        )
+        # Step 1: get random sentence pair, either negative or positive (saved as is_next_label)
+        t1, t2, is_next_label = self.get_sent(item)
 
-        # Prepare input tensors
-        input_ids = encoded_pair['input_ids'].squeeze(0)
-        token_type_ids = encoded_pair['token_type_ids'].squeeze(0)  # Segment IDs
-        attention_mask = encoded_pair['attention_mask'].squeeze(0)  # Attention Mask
+        # Step 2: replace random words in sentence with mask / random words
+        t1_random, t1_label = self.random_word(t1)
+        t2_random, t2_label = self.random_word(t2)
 
-        # Add a new dimension for compatibility
-        attention_mask = attention_mask.unsqueeze(0).unsqueeze(0)  # Shape: (1, 1, seq_length)
+        # Step 3: Adding CLS and SEP tokens to the start and end of sentences
+        # Adding PAD token for labels
+        t1 = [self.tokenizer.vocab['[CLS]']] + t1_random + [self.tokenizer.vocab['[SEP]']]
+        t2 = t2_random + [self.tokenizer.vocab['[SEP]']]
+        t1_label = [self.tokenizer.vocab['[PAD]']] + t1_label + [self.tokenizer.vocab['[PAD]']]
+        t2_label = t2_label + [self.tokenizer.vocab['[PAD]']]
 
-        # Create labels for MLM
-        mlm_labels = input_ids.clone()
-        # Randomly mask some of the tokens
-        rand = torch.rand(input_ids.shape)
-        mask_arr = (rand < 0.15) * (input_ids != 0)  # 15% tokens will be masked
-        for i in range(input_ids.shape[0]):
-            if mask_arr[i]:
-                # 80% of the time, replace with [MASK]
-                if random.random() < 0.8:
-                    mlm_labels[i] = self.tokenizer.mask_token_id
-                # 10% of the time, keep original
-                elif random.random() < 0.5:
-                    mlm_labels[i] = input_ids[i]
-                # 10% of the time, replace with random token
+        # Step 4: combine sentence 1 and 2 as one input
+        # adding PAD tokens to make the sentence same length as seq_len
+        segment_label = ([1 for _ in range(len(t1))] + [2 for _ in range(len(t2))])[:self.seq_len]
+        bert_input = (t1 + t2)[:self.seq_len]
+        bert_label = (t1_label + t2_label)[:self.seq_len]
+        padding = [self.tokenizer.vocab['[PAD]'] for _ in range(self.seq_len - len(bert_input))]
+        bert_input.extend(padding), bert_label.extend(padding), segment_label.extend(padding)
+
+        output = {"bert_input": bert_input,
+                  "bert_label": bert_label,
+                  "segment_label": segment_label,
+                  "is_next": is_next_label}
+
+        return {key: torch.tensor(value) for key, value in output.items()}
+
+    def random_word(self, sentence):
+        tokens = sentence.split()
+        output_label = []
+        output = []
+
+        # 15% of the tokens would be replaced
+        for i, token in enumerate(tokens):
+            prob = random.random()
+
+            # remove cls and sep token
+            token_id = self.tokenizer(token)['input_ids'][1:-1]
+
+            # 15% chance of altering token
+            if prob < 0.15:
+                prob /= 0.15
+
+                # 80% chance change token to mask token
+                if prob < 0.8:
+                    for i in range(len(token_id)):
+                        output.append(self.tokenizer.vocab['[MASK]'])
+
+                # 10% chance change token to random token
+                elif prob < 0.9:
+                    for i in range(len(token_id)):
+                        output.append(random.randrange(len(self.tokenizer.vocab)))
+
+                # 10% chance change token to current token
                 else:
-                    mlm_labels[i] = random.randint(1, self.tokenizer.vocab_size - 1)
+                    output.append(token_id)
 
-        return input_ids, token_type_ids, attention_mask, mlm_labels, is_next
+                output_label.append(token_id)
 
-# Example usage:
+            else:
+                output.append(token_id)
+                for i in range(len(token_id)):
+                    output_label.append(0)
+
+        # flattening
+        output = list(itertools.chain(*[[x] if not isinstance(x, list) else x for x in output]))
+        output_label = list(itertools.chain(*[[x] if not isinstance(x, list) else x for x in output_label]))
+        assert len(output) == len(output_label)
+        return output, output_label
+
+    def get_sent(self, index):
+        '''return random sentence pair'''
+        t1, t2 = self.get_corpus_line(index)
+
+        # negative or positive pair, for next sentence prediction
+        if random.random() > 0.5:
+            return t1, t2, 1
+        else:
+            return t1, self.get_random_line(), 0
+
+    def get_corpus_line(self, item):
+        '''return sentence pair'''
+        return self.lines[item][0], self.lines[item][1]
+
+    def get_random_line(self):
+        '''return random single sentence'''
+        return self.lines[random.randrange(len(self.lines))][1]
+    
+
 if __name__ == "__main__":
-    file_path = 'text.txt'
-    dataset = BERTPretrainingDataset(file_path)
+    # test
+    MAX_LEN = 64
+    tokenizer = BertTokenizer()
 
-    input_ids, token_type_ids, attention_mask, mlm_labels, is_next = dataset[0]
-    decoded_text = dataset.tokenizer.decode(input_ids, skip_special_tokens=True)
+    print("\n")
+    train_data = BERTDataset(pairs, seq_len=MAX_LEN, tokenizer=tokenizer)
+    train_loader = DataLoader(train_data, batch_size=32, shuffle=True, pin_memory=True)
+    sample_data = next(iter(train_loader))
+    print('Batch Size', sample_data['bert_input'].size())
 
-    print("Input IDs:", input_ids)
-    print("Token Type IDs:", token_type_ids)
-    print("Attention Mask:", attention_mask)
-    print("MLM Labels:", mlm_labels)
-    print("Is Next:", is_next)
-    print("Decoded Text:", decoded_text)  # This will show the decoded text
-    print(attention_mask.shape)  # Verify the shape
+    # 3 is MASK
+    result = train_data[random.randrange(len(train_data))]
+    print(result)

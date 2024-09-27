@@ -1,5 +1,5 @@
 torch==2.4.1
 numpy==2.1.1
-word-piece-tokenizer==1.0.1
 tqdm==4.66.5
 transformers==4.45.0
+tokenizers==0.20.0

@@ -105,7 +105,6 @@ class BERTTrainer():
             if i % self.log_freq == 0:
                 print({
                     "epoch": epoch,
-                    "iter": i,
                     "avg_loss": avg_loss / (i + 1),
                     "avg_acc": total_corr / total_elem * 100,
                     "loss": loss.item()
@@ -143,7 +142,7 @@ if __name__ == "__main__":
 
     trainer = BERTTrainer(bert_lm, train_loader, device='cpu')
 
-    epochs = 2
+    epochs = 5
 
     for epoch in range(epochs):
         trainer.train(epoch)

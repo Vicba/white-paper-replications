@@ -12,3 +12,27 @@ Sources for this code:
 - [BERT-pytorch (github dreamgonfly)](https://github.com/dreamgonfly/BERT-pytorch/tree/master)
 - [BERT-pytorch (github codertimo)](https://github.com/codertimo/BERT-pytorch/tree/master)
 - [DataScience NLP (github ChanCheeKean)](https://github.com/ChanCheeKean/DataScience/blob/main/13%20-%20NLP/C04%20-%20BERT%20(Pytorch%20Scratch).ipynb)
+
+## Usage
+
+1. make venv and install requirements
+
+```bash
+source venv/bin/activate
+```
+
+```bash
+pip install -r requirements.txt
+```
+
+2. get latest data by running data_setup.sh
+
+```bash
+./scripts/data_setup.py
+```
+
+3. pretrain
+
+```bash
+python trainer.py
+```

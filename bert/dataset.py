@@ -3,7 +3,8 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 import itertools
-from transformers import BertTokenizer
+from transformers import AutoTokenizer
+from preprocess import MovieDialogueProcessor
 
 class BERTDataset(Dataset):
     def __init__(self, data_pair, tokenizer, seq_len=64):
@@ -18,34 +19,34 @@ class BERTDataset(Dataset):
 
     def __getitem__(self, item):
 
-        # Step 1: get random sentence pair, either negative or positive (saved as is_next_label)
-        t1, t2, is_next_label = self.get_sent(item)
+        # Step 1: get random sentence pair, either negative or positive (saved as is_next)
+        sent1, sent2, is_next = self.get_sent(item)
 
         # Step 2: replace random words in sentence with mask / random words
-        t1_random, t1_label = self.random_word(t1)
-        t2_random, t2_label = self.random_word(t2)
+        sent1_random, sent1_label = self.random_word(sent1)
+        sent2_random, sent2_label = self.random_word(sent2)
 
         # Step 3: Adding CLS and SEP tokens to the start and end of sentences
         # Adding PAD token for labels
-        t1 = [self.tokenizer.vocab['[CLS]']] + t1_random + [self.tokenizer.vocab['[SEP]']]
-        t2 = t2_random + [self.tokenizer.vocab['[SEP]']]
-        t1_label = [self.tokenizer.vocab['[PAD]']] + t1_label + [self.tokenizer.vocab['[PAD]']]
-        t2_label = t2_label + [self.tokenizer.vocab['[PAD]']]
+        sent1 = [self.tokenizer.vocab['[CLS]']] + sent1_random + [self.tokenizer.vocab['[SEP]']]
+        sent2 = sent2_random + [self.tokenizer.vocab['[SEP]']]
+        sent1_label = [self.tokenizer.vocab['[PAD]']] + sent1_label + [self.tokenizer.vocab['[PAD]']]
+        sent2_label = sent2_label + [self.tokenizer.vocab['[PAD]']]
 
         # Step 4: combine sentence 1 and 2 as one input
         # adding PAD tokens to make the sentence same length as seq_len
-        segment_label = ([1 for _ in range(len(t1))] + [2 for _ in range(len(t2))])[:self.seq_len]
-        bert_input = (t1 + t2)[:self.seq_len]
-        bert_label = (t1_label + t2_label)[:self.seq_len]
+        segment_label = ([1 for _ in range(len(sent1))] + [2 for _ in range(len(sent2))])[:self.seq_len]
+        bert_input = (sent1 + sent2)[:self.seq_len]
+        bert_label = (sent1_label + sent2_label)[:self.seq_len]
         padding = [self.tokenizer.vocab['[PAD]'] for _ in range(self.seq_len - len(bert_input))]
         bert_input.extend(padding), bert_label.extend(padding), segment_label.extend(padding)
 
         output = {"bert_input": bert_input,
                   "bert_label": bert_label,
                   "segment_label": segment_label,
-                  "is_next": is_next_label}
+                  "is_next": is_next}
 
-        return {key: torch.tensor(value) for key, value in output.items()}
+        return {k: torch.tensor(v) for k, v in output.items()}
 
     def random_word(self, sentence):
         tokens = sentence.split()
@@ -92,13 +93,13 @@ class BERTDataset(Dataset):
 
     def get_sent(self, index):
         '''return random sentence pair'''
-        t1, t2 = self.get_corpus_line(index)
+        sent1, sent2 = self.get_corpus_line(index)
 
         # negative or positive pair, for next sentence prediction
         if random.random() > 0.5:
-            return t1, t2, 1
+            return sent1, sent2, 1
         else:
-            return t1, self.get_random_line(), 0
+            return sent1, self.get_random_line(), 0
 
     def get_corpus_line(self, item):
         '''return sentence pair'''
@@ -110,9 +111,14 @@ class BERTDataset(Dataset):
     
 
 if __name__ == "__main__":
-    # test
     MAX_LEN = 64
-    tokenizer = BertTokenizer()
+    tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+
+    corpus_movie_conv = './datasets/movie_conversations.txt'
+    corpus_movie_lines = './datasets/movie_lines.txt'
+    processor = MovieDialogueProcessor(corpus_movie_conv, corpus_movie_lines)
+    processor.load_data()
+    pairs = processor.get_pairs()
 
     print("\n")
     train_data = BERTDataset(pairs, seq_len=MAX_LEN, tokenizer=tokenizer)
@@ -120,6 +126,5 @@ if __name__ == "__main__":
     sample_data = next(iter(train_loader))
     print('Batch Size', sample_data['bert_input'].size())
 
-    # 3 is MASK
     result = train_data[random.randrange(len(train_data))]
     print(result)

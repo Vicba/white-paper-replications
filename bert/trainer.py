@@ -2,7 +2,11 @@ import torch
 import torch.nn as nn
 import numpy as np
 from tqdm.auto import tqdm
-from transformers import BertTokenizer
+from transformers import AutoTokenizer
+from preprocess import MovieDialogueProcessor
+from dataset import BERTDataset
+from torch.utils.data import DataLoader
+from model import BERT, BERTLM
 
 class ScheduledOptim():
     def __init__(self, optimizer, d_model, n_warmup_steps):
@@ -113,20 +117,27 @@ class BERTTrainer():
         )
 
 if __name__ == "__main__":
-    print(len(pairs))
     # reduce params to run on colab
     subset_size = 100  # original: 1000, adjust the size if needed
     MAX_LEN = 32 # original: 64, change to smaller value if needed
     batch_size = 16 # original: 32, change to smaller if needed but affects convergence model (require more iter)
+
+    corpus_movie_conv = './datasets/movie_conversations.txt'
+    corpus_movie_lines = './datasets/movie_lines.txt'
+    processor = MovieDialogueProcessor(corpus_movie_conv, corpus_movie_lines)
+    processor.load_data()
+    pairs = processor.get_pairs()
     pairs_subset = pairs[:subset_size]
 
-    tokenizer = BertTokenizer()
+    # tokenizer = BertTokenizer.from_pretrained('./bert-it-1/bert-it-vocab.txt', local_files_only=True)
+    tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+
 
     train_data = BERTDataset(pairs_subset, seq_len=MAX_LEN, tokenizer=tokenizer)
 
     train_loader = DataLoader(train_data, batch_size=32, shuffle=True, pin_memory=True)
 
-    bert_model = BERT(vocab_size=len(tokenizer.vocab), d_model=768, n_layers=12, n_head=12)
+    bert_model = BERT(vocab_size=len(tokenizer.vocab), d_model=768, n_layers=12, n_head=12, max_seq_len=MAX_LEN)
 
     bert_lm = BERTLM(bert=bert_model, vocab_size=len(tokenizer.vocab))
 

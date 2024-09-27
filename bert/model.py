@@ -1,12 +1,14 @@
 import torch
 import torch.nn as nn
-from embedding import BERTEmbedding
-from layers import EncoderLayer
-from transformers import BertTokenizer
-
+from embedding.bert_embedding import BERTEmbedding
+from blocks.encoder_layer import EncoderLayer
+from transformers import BertTokenizer, AutoTokenizer
+from preprocess import MovieDialogueProcessor
+from dataset import BERTDataset
+from torch.utils.data import DataLoader
 
 class BERT(nn.Module):
-    def __init__(self, d_model, vocab_size, n_layers, n_head, dropout=0.01):
+    def __init__(self, d_model, vocab_size, n_layers, n_head, max_seq_len, dropout=0.01):
         super(BERT, self).__init__()
 
         self.d_model = d_model
@@ -15,7 +17,7 @@ class BERT(nn.Module):
 
         self.d_ff = d_model * 4
 
-        self.embedding = BERTEmbedding(vocab_size, d_model)
+        self.embedding = BERTEmbedding(vocab_size, d_model, max_seq_len)
 
         self.encoder_blocks = nn.ModuleList(
             [EncoderLayer(d_model, n_head, self.d_ff, dropout) for _ in range(n_layers)]
@@ -76,10 +78,22 @@ class BERTLM(nn.Module):
 
 
 if __name__ == "__main__":
-    tokenizer = BertTokenizer()
+    MAX_LEN = 64
+    # tokenizer = BertTokenizer.from_pretrained('./bert-it-1/bert-it-vocab.txt', local_files_only=True)
+    tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+
+    corpus_movie_conv = './datasets/movie_conversations.txt'
+    corpus_movie_lines = './datasets/movie_lines.txt'
+    processor = MovieDialogueProcessor(corpus_movie_conv, corpus_movie_lines)
+    processor.load_data()
+    pairs = processor.get_pairs()
+
+    train_data = BERTDataset(pairs, seq_len=MAX_LEN, tokenizer=tokenizer)
+    train_loader = DataLoader(train_data, batch_size=32, shuffle=True, pin_memory=True)
+    sample_data = next(iter(train_loader))
 
     ### test
-    bert_model = BERT(vocab_size=len(tokenizer.vocab), d_model=768, n_layers=12, n_head=12)
+    bert_model = BERT(vocab_size=len(tokenizer.vocab), d_model=768, n_layers=12, n_head=12, max_seq_len=MAX_LEN)
     bert_result = bert_model(sample_data['bert_input'], sample_data['segment_label'])
     print(bert_result.size())
     print()

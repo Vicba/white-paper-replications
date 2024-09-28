@@ -28,7 +28,7 @@ pip install -r requirements.txt
 2. get latest data by running data_setup.sh
 
 ```bash
-./scripts/data_setup.py
+./scripts/data_setup.sh
 ```
 
 3. pretrain

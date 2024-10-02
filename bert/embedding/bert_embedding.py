@@ -1,4 +1,3 @@
-import math
 import torch
 import torch.nn as nn
 
@@ -18,8 +17,8 @@ import torch.nn as nn
 #         self.register_buffer("pe", pe)
 
 #     def forward(self, x):
-#         seq_len = x.size(1)  # Shape: (batch_size, seq_len, d_model)
-#         return self.pe[:, :seq_len, :]  # Shape: (1, seq_len, d_model)
+#         seq_len = x.size(1)  # shape: (batch_size, seq_len, d_model)
+#         return self.pe[:, :seq_len, :]  # shape: (1, seq_len, d_model)
 
 class AbsolutePositionEmbedding(nn.Module):
     def __init__(self, d_model, max_seq_len):

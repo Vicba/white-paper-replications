@@ -21,6 +21,7 @@ Here's a list of the white papers and their corresponding implementations availa
 - **["(Word2Vec) Efficient Estimation of Word Representations in Vector Space"](https://arxiv.org/pdf/1301.3781)**: Technique that transforms words into high-dimensional vectors, capturing their meaning and relationships based on the context in which they appear.
 - **["GloVe: Global Vectors for Word Representation"](https://nlp.stanford.edu/pubs/glove.pdf)**: Technique used in NLP that captures global context information for creating word embeddings.
 - **["BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding"](https://arxiv.org/pdf/1810.04805)**: BERT is a transformer-based model that understands word context in sentences by analyzing text bidirectionally.
+- **["CLIP: Learning Transferable Visual Models From Natural Language Supervision"](https://arxiv.org/pdf/2103.00020)**: Multimodal neural network that learns to connect images and text by training an image encoder and text encoder to maximize the similarity between correct image-text pairs while minimizing it for incorrect pairs.
 
 Each one contains:
 - **`README.md`**: Detailed instructions on how to use the code for that specific paper.

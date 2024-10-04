@@ -1,9 +1,5 @@
 # CLIP
 
-## TODO
-- test dataset.py
-- test train.py
-
 CLIP (Contrastive Language-Image Pretraining) is a neural network trained on a dataset of 400 million pairs of images and text, where only 20,000 pairs are correctly matched. The model learns to associate images and their corresponding text descriptions by maximizing the similarity between their vector representations.
 
 **Model Architecture**

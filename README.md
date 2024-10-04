@@ -5,7 +5,7 @@ Welcome to the **White Paper Replications** repository! This project is dedicate
 `Disclaimer:` The code is written by me, so it's not perfect. It's a combination of my own insights and parts I found in different resources.
 
 Planning on adding these in the future
-BERT, RoPE, FlashAttention, ClIP, Whisper, UNET, DDDM, DDIM, BLOOM
+SAM, RoPE, FlashAttention, Whisper, UNET, DDDM, DDIM, BLOOM
 
 ## Overview
 

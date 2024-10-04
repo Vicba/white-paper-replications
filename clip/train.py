@@ -15,7 +15,7 @@ def train_clip(model, dataloader, optimizer, num_epochs=10):
     for epoch in tqdm(range(num_epochs)):
         total_loss = 0
         for i, (images, text_tokens) in tqdm(enumerate(dataloader)):     
-            print("epoch:", epoch, "iteration:", i)       
+            print("epoch:", epoch, "iteration:", i)
             optimizer.zero_grad()
             
             image_embeddings, text_embeddings = model(images, text_tokens)
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     dataset = ImageTextDataset(split='test', transform=transform) # bc just for demo purposes
     subset_dataset = Subset(dataset, list(range(100)))
 
-    dataloader = DataLoader(dataset, batch_size=8, shuffle=True, num_workers=os.cpu_count())
+    dataloader = DataLoader(subset_dataset, batch_size=8, shuffle=True, num_workers=os.cpu_count())
 
     model = CLIPModel()
     optimizer = Adam(model.parameters(), lr=1e-4)

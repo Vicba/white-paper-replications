@@ -5,7 +5,7 @@ Welcome to the **White Paper Replications** repository! This project is dedicate
 `Disclaimer:` The code is written by me, so it's not perfect. It's a combination of my own insights and parts I found in different resources.
 
 Planning on adding these in the future
-BERT, RoPE, FlashAttention, ClIP, Whisper, UNET, DDDM, DDIM, BLOOM
+BERT, RoPE, FlashAttention, ClIP, Whisper, DDDM, DDIM, BLOOM
 
 ## Overview
 
@@ -22,6 +22,7 @@ Here's a list of the white papers and their corresponding implementations availa
 - **["GloVe: Global Vectors for Word Representation"](https://nlp.stanford.edu/pubs/glove.pdf)**: Technique used in NLP that captures global context information for creating word embeddings.
 - **["BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding"](https://arxiv.org/pdf/1810.04805)**: BERT is a transformer-based model that understands word context in sentences by analyzing text bidirectionally.
 - **["CLIP: Learning Transferable Visual Models From Natural Language Supervision"](https://arxiv.org/pdf/2103.00020)**: Multimodal neural network that learns to connect images and text by training an image encoder and text encoder to maximize the similarity between correct image-text pairs while minimizing it for incorrect pairs.
+- **["U-net: Convolutional Networks for Biomedical Image Segmentation"](https://arxiv.org/pdf/1505.04597)**: The U-Net architecture consists of an encoder that downsamples the input image to capture features and a decoder that upsamples it to produce a segmentation map, forming a "U" shape. Skip connections between corresponding layers in the encoder and decoder help preserve spatial information, increasing the model's performance in segmentation tasks.
 
 Each one contains:
 - **`README.md`**: Detailed instructions on how to use the code for that specific paper.

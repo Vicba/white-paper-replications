@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm.auto import tqdm
+from sklearn.model_selection import train_test_split
 
 from unet import UNet
 from dataset import SegmentationDataset
@@ -16,22 +17,18 @@ def train_model(model, device, train_loader, optimizer, epochs):
     for epoch in tqdm(range(epochs)):
         model.train()
         epoch_loss = 0
-        for batch_idx, (data, target) in enumerate(train_loader):
-            data, target = data.to(device), target.to(device)
+        for batch_idx, (X, y) in enumerate(train_loader):
+            X, y = X.to(device), y.to(device)
 
             optimizer.zero_grad()
-            output = model(data)
+            output = model(X)
 
-            loss = F.cross_entropy(output, target)
+            loss = F.cross_entropy(output, y)
             loss.backward()
             epoch_loss += loss.item()
 
             optimizer.step()
             
-            if batch_idx % 10 == 0:
-                print(f'Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)} '
-                      f'({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}')
-                
         average_loss = epoch_loss / len(train_loader)
         loss_history.append(average_loss)
         print(f'Epoch {epoch}, Average loss: {average_loss:.6f}')
@@ -46,22 +43,18 @@ def test_model(model, device, test_loader):
     total_pixels = 0
 
     with torch.inference_mode():
-        for data, target in test_loader:
-            data, target = data.to(device), target.to(device)
+        for X, y in test_loader:
+            X, y = X.to(device), y.to(device)
 
-            output = model(data)
+            output = model(X)
             pred = output.argmax(dim=1)
 
-            test_loss += F.cross_entropy(output, target, reduction='sum').item()
-            correct += (pred == target).sum().item()
-            total_pixels += target.numel()
+            test_loss += F.cross_entropy(output, y, reduction='sum').item()
+            correct += (pred == y).sum().item()
+            total_pixels += y.numel()
 
     test_loss /= len(test_loader.dataset)
     accuracy = 100. * correct / total_pixels
-
-    print(f'\nTest set: Average loss: {test_loss:.4f}, '
-          f'Accuracy: {correct}/{total_pixels} '
-          f'({accuracy:.2f}%)\n')
     
     return accuracy
 
@@ -98,10 +91,8 @@ def plot_loss_curve(loss_history):
 if __name__ == '__main__':
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    dataset = SegmentationDataset(num_samples=1000, img_size=128)
-    train_size = int(0.8 * len(dataset))
-    test_size = len(dataset) - train_size
-    train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])
+    dataset = SegmentationDataset(num_samples=100, img_size=128)
+    train_dataset, test_dataset = train_test_split(dataset, test_size=0.2)
 
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
@@ -111,7 +102,7 @@ if __name__ == '__main__':
     optimizer = optim.Adam(model.parameters())
 
     print("training started...")
-    loss_history = train_model(model, device, train_loader, optimizer, epochs=10)
+    loss_history = train_model(model, device, train_loader, optimizer, epochs=3)
 
     print("testing...")
     accuracy = test_model(model, device, test_loader)
